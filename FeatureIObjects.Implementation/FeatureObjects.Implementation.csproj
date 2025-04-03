@@ -7,11 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.48.0" />
+    <ProjectReference Include="..\DataStore.Implementation\DataStore.Implementation.csproj" />
+    <ProjectReference Include="..\FeatureObjects.Abstraction\FeatureObjects.Abstraction.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DataStore.Abstraction\DataStore.Abstraction.csproj" />
+    <Folder Include="Manager\" />
   </ItemGroup>
 
 </Project>
