@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DataStore.Abstraction.IDTO;
 
 namespace DataStore.Abstraction.IRepositories
 {
     public interface ICosmosDBDataFetchingRepository
     {
-        Task<List<dynamic>> GetDataFromCosmosDBAsync(int batchsize = 1000, QueryParameterDTO queryparameters);
+        Task<List<dynamic>> GetDataFromCosmosDBAsync(int batchsize = 1000, IQueryParameterDTO queryparameters);
     }
 }

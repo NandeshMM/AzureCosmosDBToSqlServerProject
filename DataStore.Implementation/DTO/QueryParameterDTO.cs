@@ -17,8 +17,8 @@ namespace DataStore.Implementation.DTO
         [Required]
         public string TableName { get; set; }
          
-        public string? CompanyId { get; set; }
-        public string ?UserId { get; set; }
+        public string CompanyId { get; set; }
+        public string UserId { get; set; }
 
     }
 }

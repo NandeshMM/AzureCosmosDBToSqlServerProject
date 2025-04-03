@@ -24,12 +24,12 @@ namespace DataStore.Implementation.Repositories
         {
             List<string> conditions = new() { "c.TableName = @tableName" };
 
-            if (!string.IsNullOrEmpty(queryparameters.companyId))
+            if (!string.IsNullOrEmpty(queryparameters.CompanyId))
             {
                 conditions.Add("c.CompanyId = @companyId");
             }
 
-            if (!string.IsNullOrEmpty(queryparameters.userId))
+            if (!string.IsNullOrEmpty(queryparameters.UserId))
             {
                 conditions.Add("c.UserId = @userId");
             }
