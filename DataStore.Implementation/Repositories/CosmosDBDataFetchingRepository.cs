@@ -4,6 +4,7 @@ using System.ComponentModel.Design;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DataStore.Abstraction.IDTO;
 using DataStore.Abstraction.IRepositories;
 using DataStore.Implementation.DTO;
 using Microsoft.Azure.Cosmos;
@@ -20,16 +21,16 @@ namespace DataStore.Implementation.Repositories
             _container = cosmosClient.GetContainer(databaseName, containerName);
         }
 
-        public async Task<List<dynamic>> GetDataFromCosmosDBAsync(int batchSize = 1000,QueryParameterDTO queryparameters)
+        public async Task<List<dynamic>> GetDataFromCosmosDBAsync(IQueryParameterDTO queryparameters,int batchSize = 1000)
         {
             List<string> conditions = new() { "c.TableName = @tableName" };
 
-            if (!string.IsNullOrEmpty(queryparameters.companyId))
+            if (!string.IsNullOrEmpty(queryparameters.CompanyId))
             {
                 conditions.Add("c.CompanyId = @companyId");
             }
 
-            if (!string.IsNullOrEmpty(queryparameters.userId))
+            if (!string.IsNullOrEmpty(queryparameters.UserId))
             {
                 conditions.Add("c.UserId = @userId");
             }
