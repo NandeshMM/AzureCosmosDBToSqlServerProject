@@ -18,9 +18,9 @@ namespace FeatureObjects.Implementation.Manager
         private readonly ILogger<Datatransferservice> _logger;
         private readonly CosmosDbRepository _cosmosrepo;
         private readonly SqlServerRepository _sqlRepo;
-        private readonly BlobstorageService _blobService;
+        private readonly BlobConnectService _blobService;
 
-        public Datatransferservice(CosmosDbRepository cosmosrepo, SqlServerRepository sqlRepo, BlobstorageService blobService, ILogger<Datatransferservice> logger)
+        public Datatransferservice(CosmosDbRepository cosmosrepo, SqlServerRepository sqlRepo, BlobConnectService blobService, ILogger<Datatransferservice> logger)
         {
             _blobService = blobService;
             _sqlRepo = sqlRepo;
@@ -49,7 +49,7 @@ namespace FeatureObjects.Implementation.Manager
                     {
 
 
-                        var blobdata = await _blobService.DownloadBlobDataAsync(containerName, fileName);
+                        var blobdata = await _blobService.GetBlobDataAsync(containerName, fileName);
                         dto = ConvertBlobDataToDto(blobdata);
 
                     }

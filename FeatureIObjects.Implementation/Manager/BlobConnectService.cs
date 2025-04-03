@@ -13,13 +13,14 @@ namespace FeatureObjects.Implementation.Manager
 {
     public class BlobConnectService
     {
-        private readonly BlobClient _blobclient;
+        private readonly BlobServiceClient _blobclient;
         private readonly ILogger<BlobConnectService> _logger;
+        private readonly IConfiguration _configurtaion;
 
-        public BlobConnectService(IConfiguration _configurtaion, ILogger<BlobConnectService> logger)//fetch the connection string dynamically
+        public BlobConnectService(IConfiguration configurtaions, ILogger<BlobConnectService> logger)//fetch the connection string dynamically
         {
+            var connectionstring = configurtaions.GetConnectionString("Blobstorage");
             _blobclient=new BlobServiceClient(connectionstring);
-
             _logger= logger;
         }
 
@@ -30,7 +31,7 @@ namespace FeatureObjects.Implementation.Manager
                 var containerclient = _blobclient.GetBlobContainerClient(containername);
                 var blobclient = containerclient.GetBlobClient(filename);
 
-                if(!await blobclient.ExistAsysnc())
+                if(!await blobclient.ExistsAsync())
                 {
                     throw new FileNotFoundException($"Blob {filename} not found in the container {containername}");
 
