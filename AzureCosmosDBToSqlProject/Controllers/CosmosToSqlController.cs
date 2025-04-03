@@ -1,4 +1,4 @@
-﻿namespace AzureCosmosDBToSqlProject.Controllers
+﻿namespace AzureCosmosDBToSqlServerProject.Controllers
 {
     public class CosmosToSqlController
     {
