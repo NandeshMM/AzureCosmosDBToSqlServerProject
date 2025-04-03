@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 
 namespace FeatureObjects.Implementation.Manager
 {
-    public class BlobConnectService
+    public class BlobConnectService:IBlobService
     {
         private readonly BlobServiceClient _blobclient;
         private readonly ILogger<BlobConnectService> _logger;

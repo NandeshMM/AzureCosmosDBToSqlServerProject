@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging;
 
 namespace FeatureObjects.Implementation.Manager
 {
-    public class Datatransferservice
+    public class Datatransferservice:IDatatransfer
     {
         private readonly ILogger<Datatransferservice> _logger;
         private readonly CosmosDbRepository _cosmosrepo;
