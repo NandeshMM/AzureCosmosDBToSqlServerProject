@@ -17,7 +17,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataStore.Implementation", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FeatureObjects.Abstraction", "FeatureObjects.Abstraction\FeatureObjects.Abstraction.csproj", "{8A8AA280-9C37-4996-B489-45A09BD08C99}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FeatureIObjects.Implementation", "FeatureIObjects.Implementation\FeatureIObjects.Implementation.csproj", "{962EF675-AB80-4059-8D39-D2DB9D1EC514}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FeatureObjects.Implementation", "FeatureIObjects.Implementation\FeatureObjects.Implementation.csproj", "{962EF675-AB80-4059-8D39-D2DB9D1EC514}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
