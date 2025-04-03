@@ -9,6 +9,7 @@ namespace DataStore.Abstraction.IRepositories
 {
     public interface ICosmosDBDataFetchingRepository
     {
-        Task<List<dynamic>> GetDataFromCosmosDBAsync(IQueryParameterDTO queryparameters, int batchsize = 1000);
+        Task FetchDataAsync(IQueryParameterDTO queryparameters, int batchSize = 1000);
+        
     }
 }
