@@ -2,25 +2,25 @@
 using System.Collections.Generic;
 using System.Data.SqlTypes;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Net.Http.Json;
 using System.Net.NetworkInformation;
 using System.Text;
-using System.Threading.Tasks;
 using DataStore.Implementation;
 using Microsoft.Extensions.Logging;
-
+using FeatureObjects.Abstraction.IManager;
+using DataStore.Implementation.DTO;
+using DataStore.Implementation.Repositories;
 
 namespace FeatureObjects.Implementation.Manager
 {
     public class Datatransferservice:IDatatransfer
     {
         private readonly ILogger<Datatransferservice> _logger;
-        private readonly CosmosDbRepository _cosmosrepo;
+        private readonly CosmosDBDataFetchingRepository _cosmosrepo;
         private readonly SqlServerRepository _sqlRepo;
         private readonly BlobConnectService _blobService;
 
-        public Datatransferservice(CosmosDbRepository cosmosrepo, SqlServerRepository sqlRepo, BlobConnectService blobService, ILogger<Datatransferservice> logger)
+        public Datatransferservice(CosmosDBDataFetchingRepository cosmosrepo, SqlServerRepository sqlRepo, BlobConnectService blobService, ILogger<Datatransferservice> logger)
         {
             _blobService = blobService;
             _sqlRepo = sqlRepo;

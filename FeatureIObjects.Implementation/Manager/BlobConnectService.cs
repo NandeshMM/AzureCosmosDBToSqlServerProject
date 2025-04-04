@@ -8,16 +8,18 @@ using System.Threading.Tasks;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Logging;
+using FeatureObjects.Abstraction.IManager;
+using Microsoft.Extensions.Configuration;
 
 namespace FeatureObjects.Implementation.Manager
 {
-    public class BlobConnectService:IBlobService
+    public class BlobConnectService:IBlobservice
     {
         private readonly BlobServiceClient _blobclient;
         private readonly ILogger<BlobConnectService> _logger;
         private readonly IConfiguration _configurtaion;
 
-        public BlobConnectService(IConfiguration configurtaions, ILogger<BlobConnectService> logger)//fetch the connection string dynamically
+        public BlobConnectService(IConfiguration configurtaions, ILogger<BlobConnectService> logger)
         {
             var connectionstring = configurtaions.GetConnectionString("Blobstorage");
             _blobclient=new BlobServiceClient(connectionstring);
@@ -38,7 +40,7 @@ namespace FeatureObjects.Implementation.Manager
                 }
 
                 BlobDownloadResult downloadresult = await blobclient.DownloadContentAsync();
-                return downloadresult.Content.Tostring();
+                return downloadresult.Content.ToString();
             }
 
             catch(Exception ex)
