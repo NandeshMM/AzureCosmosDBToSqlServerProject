@@ -14,7 +14,7 @@ namespace DataStore.Implementation.DTO
     {
         [Required]
         public string ContainerName { get; set; }
-        [Required]
+       
         public string? TableName { get; set; }
          
         public string? CompanyId { get; set; }

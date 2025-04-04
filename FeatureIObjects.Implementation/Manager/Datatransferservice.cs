@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using FeatureObjects.Abstraction.IManager;
 using DataStore.Implementation.DTO;
 using DataStore.Implementation.Repositories;
+using System.Text.Json;
 
 namespace FeatureObjects.Implementation.Manager
 {
@@ -67,6 +68,33 @@ namespace FeatureObjects.Implementation.Manager
                 await _sqlRepo.InsertAsync(dto);
 
 
+            }
+        }
+
+        private DynamicDto ConvertBlobDataToDto(byte[] blobData)
+        {
+            try
+            {
+                if(blobData==null || blobData.Length == 0)
+                {
+                    _logger.LogError("Blob Data is empty or Null");
+                    return null;
+                }
+
+                string jsonData = Encoding.UTF8.GetString(blobData);
+                var dataDict = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonData);
+
+                if (dataDict == null)
+                {
+                    _logger.LogError("Failed to deserialize the blob data");
+                    return null;
+                }
+                return new DynamicDto(dataDict);
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "Errror converting blob data to DTO");
+                return null;
             }
         }
     }
