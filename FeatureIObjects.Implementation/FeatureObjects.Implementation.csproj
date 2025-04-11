@@ -7,14 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.48.0" />
-    <PackageReference Include="Microsoft.Azure.Cosmos.Table" Version="1.0.8" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.24.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.3" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.3" />
     <PackageReference Include="Microsoft.IdentityModel.LoggingExtensions" Version="8.7.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DataStore.Abstraction\DataStore.Abstraction.csproj" />
+    <ProjectReference Include="..\DataStore.Implementation\DataStore.Implementation.csproj" />
+    <ProjectReference Include="..\FeatureObjects.Abstraction\FeatureObjects.Abstraction.csproj" />
   </ItemGroup>
 
 </Project>
