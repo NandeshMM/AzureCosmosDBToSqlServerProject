@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 using DataStore.Abstraction.IDTO;
+using Newtonsoft.Json;
 
 namespace DataStore.Implementation.DTO
 {
@@ -15,9 +9,18 @@ namespace DataStore.Implementation.DTO
         [Required]
         public string ContainerName { get; set; }
         [Required]
-        public string TableName { get; set; }
-        public string CompanyId { get; set; }
-        public string UserId { get; set; }
-
+        public string CosmosDBDatabaseName { get; set; }
+        [Required]
+        public string Query { get; set; }
+        //[Required]
+        //public string CosmosDBAccountName{ get; set; }
+        [Required]
+        public string CosmosDBConnectionString { get; set; }
+        [Required]
+        public string SQLServerConnectionString { get; set; }
+        [Required]
+        public string SQLDatabaseName { get; set; }
+        [Required]
+        public string SQLTableName { get; set; }
     }
 }

@@ -1,107 +1,112 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using Azure.Identity;
 using DataStore.Abstraction.IDTO;
 using DataStore.Abstraction.IRepositories;
+using FeatureObjects.Abstraction.IManager;
 using Microsoft.Azure.Cosmos;
-using Microsoft.Extensions.Logging; // Ensure this is included for ILogger
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace DataStore.Implementation.Repositories
 {
     public class CosmosDBDataFetchingRepository : ICosmosDBDataFetchingRepository
     {
-        private readonly Container _container;
-        private readonly IDataTransferService _dataTransferService;
         private readonly ILogger<CosmosDBDataFetchingRepository> _logger;
+        private readonly IConfiguration _configuration;
+        private readonly INotificationService _notificationService;
 
         public CosmosDBDataFetchingRepository(
-            string connectionString,
-            string databaseName,
-            string containerName,
-            IDataTransferService dataTransferService,
-            ILogger<CosmosDBDataFetchingRepository> logger)
+            ILogger<CosmosDBDataFetchingRepository> logger,
+            IConfiguration configuration,
+            INotificationService notificationService)
         {
-            var cosmosClient = new CosmosClient(connectionString, new CosmosClientOptions { AllowBulkExecution = true });
-            _container = cosmosClient.GetContainer(databaseName, containerName);
-            _dataTransferService = dataTransferService;
             _logger = logger;
+            _configuration = configuration;
+            _notificationService = notificationService;
         }
 
-        public async Task FetchDataAsync(IQueryParameterDTO queryparameters, int batchSize = 1000)
+        public async IAsyncEnumerable<List<IDictionary<string, object>>> FetchDataAsync(
+    IQueryParameterDTO queryparameters,
+    int pageSize,
+    [EnumeratorCancellation] CancellationToken cancellationToken)
         {
+            var totalDocumentTransferred = 0;
+
+            //string cosmosEndpoint = "https://cp-csdb-eus-perseus-dev-audit-logs.documents.azure.com:443/";
+            //string userAssignedClientId = "25eefb94-2bfb-4656-a05c-454675d00304"; // <- This is the Client ID of the user-assigned managed identity
+
+            //var credential = new ManagedIdentityCredential(clientId: userAssignedClientId);
+            //            var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions()
+            //            {
+            //                AuthorityHost =
+            //new Uri("https://login.microsoftonline.com/185e7ed4-24c7-4904-a70c-4d1b7fa32214"),
+            //                ManagedIdentityClientId = "",
+            //            });
+            //            var cosmosClient = new CosmosClient(cosmosEndpoint, credential);
+
+            var cosmosClient = new CosmosClient(queryparameters.CosmosDBConnectionString);
+
+            var container = cosmosClient.GetContainer(queryparameters.CosmosDBDatabaseName, queryparameters.ContainerName);
+
             string continuationToken = null;
-            double totalRequestCharge = 0; // Track total RU consumption
+            double totalRequestCharge = 0;
+
+            var queryDef = new QueryDefinition(queryparameters.Query);
+            var requestOptions = new QueryRequestOptions
+            {
+                MaxItemCount = pageSize
+            };
 
             do
             {
-                // Fetch data from Cosmos DB
-                var (batch, newContinuationToken, requestCharge) = await GetDataFromCosmosDBAsync(queryparameters, continuationToken, batchSize);
+                var stopwatch = Stopwatch.StartNew();
 
-                // Track RU charge
-                totalRequestCharge += requestCharge;
-                _logger.LogInformation($"Batch retrieved. RU consumed: {requestCharge}");
+                var iterator = container.GetItemQueryIterator<dynamic>(
+                    queryDef,
+                    continuationToken,
+                    requestOptions);
 
-                if (batch.Count == 0)
-                {
-                    _logger.LogInformation("No more data to process.");
+                if (!iterator.HasMoreResults)
                     break;
+
+                FeedResponse<dynamic> response = await iterator.ReadNextAsync(cancellationToken);
+
+                if (response == null || !response.Any())
+                {
+                    _logger.LogWarning("Received empty batch");
+                    _notificationService.SendStatusUpdateasync("No Data found in the container", "error");
+                    continue;
                 }
 
-                // Send batch to SQL transfer service asynchronously
-                await _dataTransferService.TransferDataToSqlAsync(batch);
+                double batchCharge = response.RequestCharge;
+                totalRequestCharge += batchCharge;
+                Console.WriteLine($"[RU] Batch charge: {batchCharge:0.##} — Total so far: {totalRequestCharge:0.##}");
 
-                // Update continuation token for next batch
-                continuationToken = newContinuationToken;
+                List<IDictionary<string, object>> dictList = response
+                    .Select(item =>
+                    {
+                        var d = JsonConvert.DeserializeObject<Dictionary<string, object>>(
+                                    JsonConvert.SerializeObject(item));
+                        return (IDictionary<string, object>)d;
+                    })
+                    .ToList();
 
-            } while (!string.IsNullOrEmpty(continuationToken)); // Continue until no more data
+                yield return dictList;
 
-            _logger.LogInformation($"Total RU consumed for query: {totalRequestCharge}");
-        }
+                continuationToken = response.ContinuationToken;
+                totalDocumentTransferred += response.Count;
 
-        private async Task<(List<dynamic> results, string continuationToken, double requestCharge)> GetDataFromCosmosDBAsync(
-            IQueryParameterDTO queryparameters, string continuationToken, int batchSize)
-        {
-            List<string> conditions = new() { "c.TableName = @tableName" };
-
-            if (!string.IsNullOrEmpty(queryparameters.CompanyId))
-            {
-                conditions.Add("c.CompanyId = @companyId");
+                stopwatch.Stop();
+                _logger.LogInformation("CosmosDB fetching time per batch: {ElapsedMilliseconds} ms", stopwatch.ElapsedMilliseconds);
+                await _notificationService.SendProgressAsync($"Transfering  {totalDocumentTransferred} documents");
             }
+            while (continuationToken != null);
 
-            if (!string.IsNullOrEmpty(queryparameters.UserId))
-            {
-                conditions.Add("c.UserId = @userId");
-            }
-
-            string whereClause = string.Join(" AND ", conditions);
-            var query = $@"SELECT c.Id, c.CompanyId, c.UserId, c.DataField1, c.DataField2 FROM c WHERE {whereClause}";
-
-            var queryDefinition = new QueryDefinition(query)
-                .WithParameter("@tableName", queryparameters.TableName)
-                .WithParameter("@companyId", queryparameters.CompanyId ?? "")
-                .WithParameter("@userId", queryparameters.UserId ?? "");
-
-            var queryRequestOptions = new QueryRequestOptions
-            {
-                MaxItemCount = batchSize,
-                PartitionKey = new PartitionKey(queryparameters.TableName)
-            };
-
-            var iterator = _container.GetItemQueryIterator<dynamic>(queryDefinition, continuationToken, queryRequestOptions);
-
-            var results = new List<dynamic>();
-            string newContinuationToken = null;
-            double requestCharge = 0; // Store RU consumption for this batch
-
-            if (iterator.HasMoreResults)
-            {
-                var response = await iterator.ReadNextAsync();
-                results.AddRange(response);
-                newContinuationToken = response.ContinuationToken;
-                requestCharge = response.RequestCharge; // Capture RU charge
-            }
-
-            return (results, newContinuationToken, requestCharge);
+            await _notificationService.SendStatusUpdateasync($"Transfered {totalDocumentTransferred} documents","success");
+            Console.WriteLine($"[RU] Total RU consumed for this fetch: {totalRequestCharge:0.##}");
+            _logger.LogInformation("Finished fetching all data in batches.");
         }
     }
 }

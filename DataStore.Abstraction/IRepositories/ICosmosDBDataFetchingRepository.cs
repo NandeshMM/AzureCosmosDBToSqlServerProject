@@ -1,15 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
+using System.Runtime.CompilerServices;
 using DataStore.Abstraction.IDTO;
+using Microsoft.Azure.Cosmos;
 
 namespace DataStore.Abstraction.IRepositories
 {
     public interface ICosmosDBDataFetchingRepository
     {
-        Task FetchDataAsync(IQueryParameterDTO queryparameters, int batchSize = 1000);
-        
+        IAsyncEnumerable<List<IDictionary<string, object>>> FetchDataAsync(
+    IQueryParameterDTO queryparameters,
+    int pageSize,
+    //Container container,
+    //string partitionKey, // NEW PARAM
+    CancellationToken cancellationToken);
     }
 }
